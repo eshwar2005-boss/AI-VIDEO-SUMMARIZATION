@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Summarization and Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        .container {
+            width: 70%;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .form-group input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        .form-group input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e7f7e7;
+            border-left: 5px solid #4CAF50;
+            font-size: 16px;
+        }
+        .quiz {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-left: 5px solid #4CAF50;
+        }
+        .quiz ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .quiz ul li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+        .quiz li input[type="radio"] {
+            margin-right: 10px;
+        }
+        .btn-next, .btn-retry, .btn-next-round {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-next:hover, .btn-retry:hover, .btn-next-round:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AI Video Summarization and Quiz Game</h1>
+        <p>Upload a video, view a summary, and answer the multiple-choice questions to score points!</p>
+    </header>
+
+    <div class="container">
+        <h2>Upload Your Video</h2>
+        <form id="videoForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="videoFile">Select Video</label>
+                <input type="file" id="videoFile" name="videoFile" accept="video/*" required>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Upload Video">
+            </div>
+        </form>
+
+        <!-- Video summary section -->
+        <div class="summary" id="summarySection" style="display:none;">
+            <h3>Video Summary</h3>
+            <p id="videoSummary">Loading summary...</p>
+        </div>
+
+        <!-- Quiz section -->
+        <div class="quiz" id="quizSection" style="display:none;">
+            <h3>Quiz Game</h3>
+            <form id="quizForm">
+                <ul id="quizQuestions">
+                    <!-- Questions will be dynamically inserted here -->
+                </ul>
+                <button type="button" class="btn-next" id="nextButton" onclick="nextQuestion()">Next Question</button>
+            </form>
+        </div>
+
+        <!-- Score section -->
+        <div class="summary" id="scoreSection" style="display:none;">
+            <h3>Your Score</h3>
+            <p id="score">0</p>
+            <button class="btn-next-round" onclick="nextRound()">Move to Next Round</button>
+            <button class="btn-retry" onclick="retryQuiz()">Retry Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        let score = 0;
+        let quizData = [];
+        let round = 0;
+
+        // Handle video form submission
+        document.getElementById('videoForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Hide sections initially
+            document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'none';
+            document.getElementById('scoreSection').style.display = 'none';
+
+            // Show loading indicators
+            document.getElementById('videoSummary').innerHTML = "Generating summary...";
+            document.getElementById('quizQuestions').innerHTML = "<li>Generating quiz questions...</li>";
+
+            // Simulate AI backend call to process video and generate summary/quiz
+            setTimeout(function() {
+                // Simulated AI-generated summary
+                const summary = "This video explains the basics of machine learning, including supervised learning, unsupervised learning, and neural networks.";
+
+                // Simulated AI-generated quiz questions based on the summary
+                quizData = [
+                    { 
+                        question: "What is supervised learning?", 
+                        options: [
+                            "A type of machine learning where the model is trained on labeled data.", 
+                            "A type of machine learning where the model is trained on unlabeled data.", 
+                            "A neural network approach.", 
+                            "A deep learning model."
+                        ], 
+                        correctAnswer: "A type of machine learning where the model is trained on labeled data." 
+                    },
+                    { 
+                        question: "What is unsupervised learning?", 
+                        options: [
+                            "A type of machine learning where the model is trained on unlabeled data.", 
+                            "A type of machine learning where the model is trained on labeled data.", 
+                            "A supervised learning model.", 
+                            "A reinforcement learning model."
+                        ], 
+                        correctAnswer: "A type of machine learning where the model is trained on unlabeled data." 
+                    },
+                    { 
+                        question: "What are neural networks?", 
+                        options: [
+                            "A series of algorithms that attempt to recognize underlying relationships in a set of data.", 
+                            "A supervised learning technique.", 
+                            "An unsupervised learning algorithm.", 
+                            "A data clustering algorithm."
+                        ], 
+                        correctAnswer: "A series of algorithms that attempt to recognize underlying relationships in a set of data." 
+                    }
+                ];
+
+                // Display summary
+                document.getElementById('videoSummary').innerHTML = summary;
+                document.getElementById('summarySection').style.display = 'block';
+
+                // Start quiz
+                displayQuestion(currentQuestion);
+                document.getElementById('quizSection').style.display = 'block';
+            }, 3000); // Simulate 3-second processing time
+        });
+
+        // Display quiz question with options
+        function displayQuestion(questionIndex) {
+            if (questionIndex < quizData.length) {
+                const questionData = quizData[questionIndex];
+                let optionsHTML = questionData.options.map((option, index) => 
+                    `<li>
+                        <input type="radio" name="answer_${questionIndex}" value="${option}" id="option${index}">
+                        <label for="option${index}">
+                            ${option}
+                        </label>
+                    </li>`).join('');
+                
+                document.getElementById('quizQuestions').innerHTML = ` 
+                    <li>
+                        <strong>${questionData.question}</strong><br>
+                        <ul>
+                            ${optionsHTML}
+                        </ul>
+                    </li>
+                `;
+            }
+        }
+
+        // Handle next question
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="answer_' + currentQuestion + '"]:checked');
+            if (selectedOption) {
+                const userAnswer = selectedOption.value;
+                const correctAnswer = quizData[currentQuestion].correctAnswer;
+
+                // Check answer and update score
+                if (userAnswer === correctAnswer) {
+                    score++;
+                }
+
+                // Move to the next question
+                currentQuestion++;
+                if (currentQuestion < quizData.length) {
+                    displayQuestion(currentQuestion);
+                } else {
+                    // All questions answered, show score
+                    document.getElementById('quizSection').style.display = 'none';
+                    document.getElementById('score').textContent = score;
+                    document.getElementById('scoreSection').style.display = 'block';
+                }
+            } else {
+                alert("Please select an answer before proceeding!");
+            }
+        }
+
+        // Move to next round (Display new set of questions)
+        function nextRound() {
+            round++;
+            // Here you can define new quizData for each round if necessary
+            if (round === 1) {
+                quizData = [
+                    { 
+                        question: "What is reinforcement learning?", 
+                        options: [
+                            "A learning method where agents take actions in an environment to maximize cumulative reward.", 
+                            "A type of unsupervised learning.", 
+                            "A supervised learning algorithm.", 
+                            "A clustering technique."
+                        ], 
+                        correctAnswer: "A learning method where agents take actions in an environment to maximize cumulative reward." 
+                    },
+                    { 
+                        question: "What is deep learning?", 
+                        options: [
+                            "A subset of machine learning that uses neural networks with many layers.", 
+                            "A type of supervised learning.", 
+                            "A decision tree algorithm.", 
+                            "An unsupervised learning method."
+                        ], 
+                        correctAnswer: "A subset of machine learning that uses neural networks with many layers." 
+                    },
+                ];
+            }
+
+            // Reset for the new round
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('scoreSection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'block';
+            displayQuestion(currentQuestion);
+        }
+
+        // Retry quiz
+        function retryQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('scoreSection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'block';
+            displayQuestion(currentQuestion);
+        }
+    </script>
+
+</body>
+</html>

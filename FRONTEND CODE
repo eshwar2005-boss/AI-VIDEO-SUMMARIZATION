@@ -1,0 +1,114 @@
+Make sure you have Flask installed:
+
+pip install Flask
+
+import os
+from flask import Flask, render_template, request, jsonify
+import random
+
+app = Flask(__name__)
+
+# Set the upload folder for videos
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
+
+# Create the upload folder if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Helper function to check allowed video formats
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Simulated function to summarize video (replace with actual AI summarization)
+def summarize_video(video_path):
+    # In a real scenario, you would use a video processing model or API
+    return "This video explains the basics of machine learning, including supervised learning, unsupervised learning, and neural networks."
+
+# Simulated quiz questions (based on video content)
+def get_quiz_questions():
+    return [
+        { 
+            'question': "What is supervised learning?", 
+            'options': [
+                "A type of machine learning where the model is trained on labeled data.", 
+                "A type of machine learning where the model is trained on unlabeled data.", 
+                "A neural network approach.", 
+                "A deep learning model."
+            ], 
+            'correctAnswer': "A type of machine learning where the model is trained on labeled data." 
+        },
+        { 
+            'question': "What is unsupervised learning?", 
+            'options': [
+                "A type of machine learning where the model is trained on unlabeled data.", 
+                "A type of machine learning where the model is trained on labeled data.", 
+                "A supervised learning model.", 
+                "A reinforcement learning model."
+            ], 
+            'correctAnswer': "A type of machine learning where the model is trained on unlabeled data." 
+        },
+        { 
+            'question': "What are neural networks?", 
+            'options': [
+                "A series of algorithms that attempt to recognize underlying relationships in a set of data.", 
+                "A supervised learning technique.", 
+                "An unsupervised learning algorithm.", 
+                "A data clustering algorithm."
+            ], 
+            'correctAnswer': "A series of algorithms that attempt to recognize underlying relationships in a set of data." 
+        }
+    ]
+
+@app.route('/')
+def index():
+    return render_template('index.html')  # Your front-end HTML file
+
+@app.route('/upload', methods=['POST'])
+def upload_video():
+    if 'videoFile' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['videoFile']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+    if file and allowed_file(file.filename):
+        # Save the file to the server
+        video_filename = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(video_filename)
+        
+        # Summarize the video (replace with actual AI summarization logic)
+        summary = summarize_video(video_filename)
+        
+        # Return the video summary and quiz questions
+        quiz_questions = get_quiz_questions()
+        
+        return jsonify({
+            'summary': summary,
+            'quiz': quiz_questions
+        })
+    
+    return jsonify({'error': 'Invalid file format'}), 400
+
+@app.route('/submit_quiz', methods=['POST'])
+def submit_quiz():
+    user_answers = request.form
+    score = 0
+    
+    # Quiz questions from the backend
+    quiz_data = get_quiz_questions()
+    
+    # Compare user answers with correct answers
+    for i, question in enumerate(quiz_data):
+        correct_answer = question['correctAnswer']
+        user_answer = user_answers.get(f'answer_{i}')
+        
+        if user_answer == correct_answer:
+            score += 1
+    
+    # Return the score to the front-end
+    return jsonify({'score': score, 'total': len(quiz_data)})
+
+if __name__ == '__main__':
+    app.run(debug=True)
